@@ -2,10 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { ScrollView, StyleSheet } from 'react-native';
 import { Button, Card, Snackbar, Text } from 'react-native-paper';
 import { useAuth } from '../../context/AuthContext';
-import { authServiceLogout } from '@backend/services/authService';
+import authApiService from '../../services/authApiService';
 
 export default function HomeScreen() {
-  const { user, resetAuthStackToLogin } = useAuth();
+  const { user, resetAuthStackToLogin, clearAuthState } = useAuth();
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -19,12 +19,13 @@ export default function HomeScreen() {
 
   const onLogout = async () => {
     setLoading(true);
-    const res = await authServiceLogout();
+    const res = await authApiService.logout();
     setLoading(false);
     if (!res.ok) {
       setToast(res.message);
       return;
     }
+    await clearAuthState();
     await resetAuthStackToLogin();
     setToast('Signed out.');
   };

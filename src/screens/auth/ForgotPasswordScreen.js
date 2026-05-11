@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
-import { authServiceForgotPassword } from '@backend/services/authService';
-import { notificationServiceOnPasswordResetRequested } from '@backend/services/notificationService';
-import { validateEmail } from '@backend/utils/validation';
+import authApiService from '../../services/authApiService';
+import notificationApiService from '../../services/notificationApiService';
+import { validateEmail } from '../../config/validation';
 
 export default function ForgotPasswordScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -18,7 +18,7 @@ export default function ForgotPasswordScreen({ navigation }) {
     if (!e.ok) return;
 
     setLoading(true);
-    const res = await authServiceForgotPassword(e.value);
+    const res = await authApiService.forgotPassword({ email: e.value });
     setLoading(false);
 
     if (!res.ok) {
@@ -26,9 +26,9 @@ export default function ForgotPasswordScreen({ navigation }) {
       return;
     }
 
-    // Local / device notification (and logs FCM-backed Expo token when configured).
+    // Optional local bootstrap: ensures push permissions/token exist before user returns.
     try {
-      await notificationServiceOnPasswordResetRequested();
+      await notificationApiService.initialize();
     } catch {
       /* non-fatal */
     }

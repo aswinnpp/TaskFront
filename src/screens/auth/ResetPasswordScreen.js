@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
-import { authServiceUpdatePassword } from '@backend/services/authService';
-import { PASSWORD_RULES_TEXT } from '@backend/utils/constants';
-import { validatePassword } from '@backend/utils/validation';
+import authApiService from '../../services/authApiService';
+import { deepLinkSessionStorage } from '../../services/deepLinkService';
+import { PASSWORD_RULES_TEXT } from '../../config/constants';
+import { validatePassword } from '../../config/validation';
+import { useAuth } from '../../context/AuthContext';
 
 /**
  * Shown after Supabase recovery deep link sets a session with type=recovery.
  */
 export default function ResetPasswordScreen() {
+  const { setAuthFromApiResponse, resetAuthStackToLogin } = useAuth();
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
@@ -25,14 +28,30 @@ export default function ResetPasswordScreen() {
     setConfirmErr(cErr);
     if (!p.ok || cErr) return;
 
+    const accessToken = await deepLinkSessionStorage.getPendingResetAccessToken();
+    const refreshToken = await deepLinkSessionStorage.getPendingResetRefreshToken();
+    if (!accessToken) {
+      setToast('Missing reset token. Please open the reset link again.');
+      return;
+    }
+
     setLoading(true);
-    const res = await authServiceUpdatePassword(p.value);
+    const res = await authApiService.resetPassword({
+      accessToken,
+      refreshToken,
+      newPassword: p.value,
+    });
     setLoading(false);
 
     if (!res.ok) {
       setToast(res.message);
       return;
     }
+    await deepLinkSessionStorage.setRecoveryInProgress(false);
+    await deepLinkSessionStorage.setPendingResetAccessToken(null);
+    await deepLinkSessionStorage.setPendingResetRefreshToken(null);
+    if (res.data?.accessToken) await setAuthFromApiResponse(res.data);
+    await resetAuthStackToLogin();
     setToast('Password updated. You are signed in.');
   };
 

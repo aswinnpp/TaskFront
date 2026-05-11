@@ -1,9 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import {
-  repositoryOnAuthStateChange,
-  repositoryGetSession,
-} from '@backend/repositories/authRepository';
-import { getRecoveryInProgress } from '@backend/storage/sessionStorage';
+import authApiService from '../services/authApiService';
+import { deepLinkSessionStorage } from '../services/deepLinkService';
 
 const AuthContext = createContext(null);
 
@@ -17,10 +14,32 @@ export function AuthProvider({ children }) {
   const [authInitialRoute, setAuthInitialRoute] = useState('Splash');
 
   const refreshRecoveryFlag = useCallback(async () => {
-    const flag = await getRecoveryInProgress();
+    const flag = await deepLinkSessionStorage.getRecoveryInProgress();
     setRecoveryInProgressState(flag);
     return flag;
   }, []);
+
+  const setAuthFromApiResponse = useCallback(
+    async (data) => {
+      // Backend returns { accessToken, refreshToken, user, ... }
+      const accessToken = data?.accessToken || null;
+      const refreshToken = data?.refreshToken || null;
+      const newUser = data?.user || null;
+      setSession(accessToken ? { accessToken, refreshToken } : null);
+      setUser(newUser);
+      await refreshRecoveryFlag();
+    },
+    [refreshRecoveryFlag]
+  );
+
+  const clearAuthState = useCallback(async () => {
+    await authApiService.logout();
+    setSession(null);
+    setUser(null);
+    await refreshRecoveryFlag();
+    setAuthInitialRoute('Login');
+    setAuthStackKey((k) => k + 1);
+  }, [refreshRecoveryFlag]);
 
   /** Call after a successful password-recovery deep link so the Auth stack shows Reset Password. */
   const focusResetPasswordFlow = useCallback(async () => {
@@ -41,22 +60,23 @@ export function AuthProvider({ children }) {
 
     (async () => {
       await refreshRecoveryFlag();
-      const { data } = await repositoryGetSession();
       if (cancelled) return;
-      setSession(data.session);
-      setUser(data.session?.user ?? null);
+      const stored = await authApiService.getStoredAuth();
+      if (stored?.accessToken) {
+        setSession({
+          accessToken: stored.accessToken,
+          refreshToken: stored.refreshToken,
+        });
+        setUser(stored.user);
+      } else {
+        setSession(null);
+        setUser(null);
+      }
       setInitializing(false);
     })();
 
-    const subscription = repositoryOnAuthStateChange(async (_event, newSession) => {
-      setSession(newSession);
-      setUser(newSession?.user ?? null);
-      await refreshRecoveryFlag();
-    });
-
     return () => {
       cancelled = true;
-      subscription.unsubscribe();
     };
   }, [refreshRecoveryFlag]);
 
@@ -71,6 +91,8 @@ export function AuthProvider({ children }) {
       refreshRecoveryFlag,
       focusResetPasswordFlow,
       resetAuthStackToLogin,
+      setAuthFromApiResponse,
+      clearAuthState,
     }),
     [
       session,
@@ -82,6 +104,8 @@ export function AuthProvider({ children }) {
       refreshRecoveryFlag,
       focusResetPasswordFlow,
       resetAuthStackToLogin,
+      setAuthFromApiResponse,
+      clearAuthState,
     ]
   );
 

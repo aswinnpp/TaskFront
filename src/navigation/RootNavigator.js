@@ -8,7 +8,7 @@ import AppStackNavigator from './AppStackNavigator';
 import {
   deepLinkServiceGetInitialUrl,
   deepLinkServiceHandleUrl,
-} from '@backend/services/deepLinkService';
+} from '../services/deepLinkService';
 import { Snackbar } from 'react-native-paper';
 
 const navTheme = {

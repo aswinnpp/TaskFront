@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
-import {
-  authServiceSignUp,
-  authServiceStartPhoneVerification,
-} from '@backend/services/authService';
-import { PASSWORD_RULES_TEXT } from '@backend/utils/constants';
-import { validateEmail, validatePassword, validatePhone } from '@backend/utils/validation';
+import authApiService from '../../services/authApiService';
+import { PASSWORD_RULES_TEXT } from '../../config/constants';
+import { validateEmail, validatePassword, validatePhoneE164 } from '../../config/validation';
+import { useAuth } from '../../context/AuthContext';
 
 export default function SignUpScreen({ navigation }) {
+  const { setAuthFromApiResponse } = useAuth();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -21,7 +20,7 @@ export default function SignUpScreen({ navigation }) {
   const onSubmit = async () => {
     setToast('');
     const e = validateEmail(email);
-    const ph = validatePhone(phone);
+    const ph = validatePhoneE164(phone);
     const p = validatePassword(password);
     setEmailErr(e.ok ? '' : e.message);
     setPhoneErr(ph.ok ? '' : ph.message);
@@ -29,32 +28,25 @@ export default function SignUpScreen({ navigation }) {
     if (!e.ok || !ph.ok || !p.ok) return;
 
     setLoading(true);
-    const res = await authServiceSignUp(e.value, p.value, ph.value);
+    const res = await authApiService.signup({
+      email: e.value,
+      password: p.value,
+      phone: ph.value,
+    });
     setLoading(false);
 
     if (!res.ok) {
       setToast(res.message);
       return;
     }
-
-    if (res.needsEmailConfirmation) {
-      setToast('Check your email to confirm your account, then sign in.');
-      navigation.navigate('Login');
+    if (res.data?.accessToken) {
+      await setAuthFromApiResponse(res.data);
+      setToast('Account created. You are signed in.');
       return;
     }
 
-    // Session available (email confirmation disabled in Supabase project)
-    const otpRes = await authServiceStartPhoneVerification(res.phone);
-    if (!otpRes.ok) {
-      setToast(
-        otpRes.message +
-          ' You can verify your phone later from the app once SMS is configured in Supabase.'
-      );
-      navigation.navigate('Login');
-      return;
-    }
-
-    navigation.navigate('VerifyPhone', { phone: otpRes.phone });
+    setToast('Account created. Enter the OTP sent to your phone.');
+    navigation.navigate('VerifyPhone', { phone: ph.value });
   };
 
   return (

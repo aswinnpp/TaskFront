@@ -1,8 +1,5 @@
 import { useEffect } from 'react';
-import {
-  notificationServiceInitialize,
-  notificationServiceRegisterPushToken,
-} from '@backend/services/notificationService';
+import notificationApiService from '../services/notificationApiService';
 
 /**
  * Optional hook if you prefer colocating notification startup outside App.js.
@@ -10,8 +7,8 @@ import {
 export function useNotificationBootstrap() {
   useEffect(() => {
     (async () => {
-      await notificationServiceInitialize();
-      await notificationServiceRegisterPushToken();
+      await notificationApiService.initialize();
+      await notificationApiService.registerPushToken();
     })();
   }, []);
 }

@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
-import { authServiceLogin } from '@backend/services/authService';
-import { validateEmail, validatePassword } from '@backend/utils/validation';
+import authApiService from '../../services/authApiService';
+import { validateEmail, validatePassword } from '../../config/validation';
+import { useAuth } from '../../context/AuthContext';
 
 export default function LoginScreen({ navigation }) {
+  const { setAuthFromApiResponse } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [emailErr, setEmailErr] = useState('');
@@ -21,13 +23,14 @@ export default function LoginScreen({ navigation }) {
     if (!e.ok || !p.ok) return;
 
     setLoading(true);
-    const res = await authServiceLogin(e.value, p.value);
+    const res = await authApiService.login({ email: e.value, password: p.value });
     setLoading(false);
 
     if (!res.ok) {
       setToast(res.message);
       return;
     }
+    await setAuthFromApiResponse(res.data);
     setToast('Signed in successfully.');
   };
 

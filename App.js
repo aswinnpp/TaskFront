@@ -4,10 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Provider as PaperProvider, MD3DarkTheme } from 'react-native-paper';
 import { AuthProvider } from './src/context/AuthContext';
 import RootNavigator from './src/navigation/RootNavigator';
-import {
-  notificationServiceInitialize,
-  notificationServiceRegisterPushToken,
-} from '@backend/services/notificationService';
+import notificationApiService from './src/services/notificationApiService';
 
 const theme = {
   ...MD3DarkTheme,
@@ -23,10 +20,19 @@ const theme = {
 
 export default function App() {
   useEffect(() => {
-    (async () => {
-      await notificationServiceInitialize();
-      await notificationServiceRegisterPushToken();
-    })();
+    const initializeNotifications = async () => {
+      try {
+        await notificationApiService.initialize();
+        await notificationApiService.registerPushToken();
+      } catch (error) {
+        console.log(
+          '[NOTIFICATION INIT ERROR]',
+          error?.message || error
+        );
+      }
+    };
+
+    initializeNotifications();
   }, []);
 
   return (

@@ -1,0 +1,18 @@
+{
+    "expo": {
+      "name": "TaskTuto",
+      "slug": "tasktuto",
+      "scheme": "tasktuto",
+      "version": "1.0.0",
+      "orientation": "portrait",
+      "platforms": ["ios", "android"],
+      "android": {
+        "package": "com.aswin.tasktuto"
+      },
+      "extra": {
+        "eas": {
+          "projectId": "dd7ec7f7-028f-4376-97a6-8747637911bf"
+        }
+      }
+    }
+  }
