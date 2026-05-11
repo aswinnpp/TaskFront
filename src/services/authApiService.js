@@ -47,7 +47,7 @@ class AuthApiService {
 
   async signup({ email, password, phone }) {
     try {
-      const data = await apiRequest('/auth/signup', {
+      const data = await apiRequest('/api/auth/signup', {
         method: 'POST',
         body: { email, password, phone },
       });
@@ -61,7 +61,7 @@ class AuthApiService {
 
   async login({ email, password }) {
     try {
-      const data = await apiRequest('/auth/login', {
+      const data = await apiRequest('/api/auth/login', {
         method: 'POST',
         body: { email, password },
       });
@@ -75,7 +75,7 @@ class AuthApiService {
 
   async verifyOtp({ phone, otp }) {
     try {
-      const data = await apiRequest('/auth/verify-otp', {
+      const data = await apiRequest('/api/auth/verify-otp', {
         method: 'POST',
         body: { phone, otp },
       });
@@ -89,7 +89,7 @@ class AuthApiService {
 
   async resendOtp({ phone }) {
     try {
-      const data = await apiRequest('/auth/resend-otp', {
+      const data = await apiRequest('/api/auth/resend-otp', {
         method: 'POST',
         body: { phone },
       });
@@ -102,7 +102,7 @@ class AuthApiService {
 
   async forgotPassword({ email }) {
     try {
-      const data = await apiRequest('/auth/forgot-password', {
+      const data = await apiRequest('/api/auth/forgot-password', {
         method: 'POST',
         body: { email },
       });
@@ -115,7 +115,7 @@ class AuthApiService {
 
   async resetPassword({ accessToken, refreshToken, newPassword }) {
     try {
-      const data = await apiRequest('/auth/reset-password', {
+      const data = await apiRequest('/api/auth/reset-password', {
         method: 'POST',
         body: { accessToken, refreshToken, newPassword, confirmPassword: newPassword },
       });
@@ -131,7 +131,7 @@ class AuthApiService {
     try {
       const { refreshToken } = await readAuth();
       if (!refreshToken) return toResult(false, { message: 'Missing refresh token.' });
-      const data = await apiRequest('/auth/refresh-token', {
+      const data = await apiRequest('/api/auth/refresh-token', {
         method: 'POST',
         body: { refreshToken },
       });
@@ -148,7 +148,7 @@ class AuthApiService {
       const { accessToken } = await readAuth();
       try {
         if (accessToken) {
-          await apiRequest('/auth/logout', {
+          await apiRequest('/api/auth/logout', {
             method: 'POST',
             token: accessToken,
           });

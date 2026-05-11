@@ -11,9 +11,11 @@ export default function SignUpScreen({ navigation }) {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [emailErr, setEmailErr] = useState('');
   const [phoneErr, setPhoneErr] = useState('');
   const [passwordErr, setPasswordErr] = useState('');
+  const [confirmPasswordErr, setConfirmPasswordErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
 
@@ -25,7 +27,10 @@ export default function SignUpScreen({ navigation }) {
     setEmailErr(e.ok ? '' : e.message);
     setPhoneErr(ph.ok ? '' : ph.message);
     setPasswordErr(p.ok ? '' : p.message);
-    if (!e.ok || !ph.ok || !p.ok) return;
+    let matchErr = '';
+    if (p.ok && confirmPassword !== p.value) matchErr = 'Passwords do not match.';
+    setConfirmPasswordErr(matchErr);
+    if (!e.ok || !ph.ok || !p.ok || matchErr) return;
 
     setLoading(true);
     const res = await authApiService.signup({
@@ -107,6 +112,7 @@ export default function SignUpScreen({ navigation }) {
           onChangeText={(t) => {
             setPassword(t);
             setPasswordErr('');
+            setConfirmPasswordErr('');
           }}
           secureTextEntry
           error={!!passwordErr}
@@ -115,6 +121,24 @@ export default function SignUpScreen({ navigation }) {
         {!!passwordErr && (
           <Text style={styles.error} variant="bodySmall">
             {passwordErr}
+          </Text>
+        )}
+
+        <TextInput
+          label="Confirm password"
+          mode="outlined"
+          value={confirmPassword}
+          onChangeText={(t) => {
+            setConfirmPassword(t);
+            setConfirmPasswordErr('');
+          }}
+          secureTextEntry
+          error={!!confirmPasswordErr}
+          style={styles.input}
+        />
+        {!!confirmPasswordErr && (
+          <Text style={styles.error} variant="bodySmall">
+            {confirmPasswordErr}
           </Text>
         )}
 
