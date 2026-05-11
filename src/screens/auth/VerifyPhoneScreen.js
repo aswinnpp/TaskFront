@@ -3,13 +3,11 @@ import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
 import authApiService from '../../services/authApiService';
 import { validateOtp } from '../../config/validation';
-import { useAuth } from '../../context/AuthContext';
 
 /**
- * Confirms SMS OTP after signup (requires Phone provider enabled in Supabase).
+ * Confirms SMS OTP after signup. On success, user goes to Login (no session until login).
  */
-export default function VerifyPhoneScreen({ route }) {
-  const { setAuthFromApiResponse } = useAuth();
+export default function VerifyPhoneScreen({ route, navigation }) {
   const phone = route.params?.phone || '';
   const [otp, setOtp] = useState('');
   const [otpErr, setOtpErr] = useState('');
@@ -33,9 +31,12 @@ export default function VerifyPhoneScreen({ route }) {
       setToast(res.message);
       return;
     }
-    if (res.data?.accessToken) await setAuthFromApiResponse(res.data);
-    setToast('Phone verified. You are signed in.');
-    // Root navigator switches to the app stack automatically when the session updates.
+
+    const successMsg = 'Phone verified successfully. Please login.';
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'Login', params: { phoneVerifiedMessage: successMsg } }],
+    });
   };
 
   const onResend = async () => {

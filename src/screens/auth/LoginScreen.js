@@ -1,11 +1,26 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet } from 'react-native';
 import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import authApiService from '../../services/authApiService';
 import { validateEmail, validatePassword } from '../../config/validation';
 import { useAuth } from '../../context/AuthContext';
 
+/** Maps legacy email-verification errors to the phone-first flow. */
+function friendlyLoginError(message) {
+  const m = String(message || '');
+  const lower = m.toLowerCase();
+  if (lower.includes('email') && (lower.includes('verif') || lower.includes('confirm'))) {
+    return 'Complete phone verification with the SMS code from signup, then sign in here.';
+  }
+  if (lower.includes('phone') && (lower.includes('verif') || lower.includes('not verified'))) {
+    return 'Verify your phone with the SMS code we sent, then sign in.';
+  }
+  return m;
+}
+
 export default function LoginScreen({ navigation }) {
+  const route = useRoute();
   const { setAuthFromApiResponse } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,6 +28,16 @@ export default function LoginScreen({ navigation }) {
   const [passwordErr, setPasswordErr] = useState('');
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState('');
+
+  useFocusEffect(
+    useCallback(() => {
+      const msg = route.params?.phoneVerifiedMessage;
+      if (msg) {
+        setToast(msg);
+        navigation.setParams({ phoneVerifiedMessage: undefined });
+      }
+    }, [navigation, route.params?.phoneVerifiedMessage])
+  );
 
   const onSubmit = async () => {
     setToast('');
@@ -27,7 +52,7 @@ export default function LoginScreen({ navigation }) {
     setLoading(false);
 
     if (!res.ok) {
-      setToast(res.message);
+      setToast(friendlyLoginError(res.message));
       return;
     }
     await setAuthFromApiResponse(res.data);
@@ -44,7 +69,7 @@ export default function LoginScreen({ navigation }) {
           Welcome back
         </Text>
         <Text variant="bodyMedium" style={styles.muted}>
-          Sign in with your email and password.
+          Sign in with your email and password after you verify your phone with the signup SMS code.
         </Text>
 
         <TextInput

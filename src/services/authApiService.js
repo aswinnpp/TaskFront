@@ -51,7 +51,7 @@ class AuthApiService {
         method: 'POST',
         body: { email, password, phone },
       });
-      if (data?.accessToken) await persistAuth(data);
+      // Do not persist session here: user must verify phone OTP, then sign in on Login.
       return toResult(true, { data });
     } catch (err) {
       console.log('[AUTH API ERROR]', 'signup', err?.message || err);
@@ -79,7 +79,7 @@ class AuthApiService {
         method: 'POST',
         body: { phone, otp },
       });
-      if (data?.accessToken) await persistAuth(data);
+      // Do not persist session here: user signs in on Login after phone is verified.
       return toResult(true, { data });
     } catch (err) {
       console.log('[AUTH API ERROR]', 'verify-otp', err?.message || err);

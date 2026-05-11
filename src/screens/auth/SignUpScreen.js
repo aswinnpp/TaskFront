@@ -4,10 +4,7 @@ import { Button, Snackbar, Text, TextInput } from 'react-native-paper';
 import authApiService from '../../services/authApiService';
 import { PASSWORD_RULES_TEXT } from '../../config/constants';
 import { validateEmail, validatePassword, validatePhoneE164 } from '../../config/validation';
-import { useAuth } from '../../context/AuthContext';
-
 export default function SignUpScreen({ navigation }) {
-  const { setAuthFromApiResponse } = useAuth();
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
@@ -44,13 +41,8 @@ export default function SignUpScreen({ navigation }) {
       setToast(res.message);
       return;
     }
-    if (res.data?.accessToken) {
-      await setAuthFromApiResponse(res.data);
-      setToast('Account created. You are signed in.');
-      return;
-    }
 
-    setToast('Account created. Enter the OTP sent to your phone.');
+    setToast('We sent a code to your phone. Enter it to finish signup.');
     navigation.navigate('VerifyPhone', { phone: ph.value });
   };
 

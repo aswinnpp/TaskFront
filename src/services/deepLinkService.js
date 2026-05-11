@@ -63,7 +63,6 @@ export async function deepLinkServiceHandleUrl(url, { focusResetPasswordFlow } =
     // Examples we support:
     // - tasktuto://password-reset?access_token=...&type=recovery
     // - tasktuto://auth/callback?access_token=...&refresh_token=...
-    // - tasktuto://email-verification?status=success
     const normalizedPath = String(path || '').replace(/^\/+/, '');
 
     if (normalizedPath.startsWith('password-reset')) {
@@ -90,10 +89,6 @@ export async function deepLinkServiceHandleUrl(url, { focusResetPasswordFlow } =
 
     if (normalizedPath.startsWith('auth/callback')) {
       // Auth callback is handled by normal login flow in-app.
-      return { handled: true };
-    }
-
-    if (normalizedPath.startsWith('email-verification')) {
       return { handled: true };
     }
 

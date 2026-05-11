@@ -11,7 +11,7 @@ export default function HomeScreen() {
 
   const email = user?.email || '—';
   const phone = user?.phone || user?.user_metadata?.phone || '—';
-  const id = user?.id || '—';
+  const id = user?.id ?? user?._id ?? '—';
 
   useEffect(() => {
     if (!user) setToast('Your session is invalid. Please sign in again.');
