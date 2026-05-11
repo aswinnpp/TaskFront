@@ -8,7 +8,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') });
 module.exports = {
   expo: {
     name: 'Supabase Auth',
-    slug: 'supabase-auth-expo',
+    slug: "tasktuto",
     version: '1.0.0',
     orientation: 'portrait',
     icon: './assets/icon.png',
