@@ -52,7 +52,7 @@ module.exports = {
       supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
       resetPasswordPath: process.env.EXPO_PUBLIC_RESET_PASSWORD_PATH || 'reset-password',
       eas: {
-        projectId: "dd7ec7f7-028f-4376-97a6-8747637911bf",
+        projectId: "acad8d4b-4c69-42b7-844a-b939ffa377ea",
       },
     },
   },
